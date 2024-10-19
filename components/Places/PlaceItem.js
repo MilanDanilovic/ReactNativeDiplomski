@@ -6,7 +6,7 @@ function PlaceItem({ place, onSelect }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-      onPress={onSelect.bind(this, place.id)}
+      onPress={onSelect.bind(this, place.id, place)} //remove place when firebase is implemented
     >
       <Image style={styles.image} source={{ uri: place.imageUri }} />
       <View style={styles.info}>

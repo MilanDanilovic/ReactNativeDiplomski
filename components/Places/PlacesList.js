@@ -7,9 +7,10 @@ import PlaceItem from "./PlaceItem";
 function PlacesList({ places }) {
   const navigation = useNavigation();
 
-  function selectPlaceHandler(id) {
+  function selectPlaceHandler(id, place) {
     navigation.navigate("PlaceDetails", {
       placeId: id,
+      place: place, //remove place when firebase is implemented
     });
   }
 

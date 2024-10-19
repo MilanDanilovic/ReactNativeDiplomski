@@ -7,9 +7,12 @@ import AddPlace from "./screens/AddPlace";
 import IconButton from "./components/UI/IconButton";
 import { Colors } from "./constants/colors";
 import Map from "./screens/Map";
+import { useEffect } from "react";
+import PlaceDetails from "./screens/PlaceDetails";
 
 const Stack = createNativeStackNavigator();
 export default function App() {
+  useEffect(() => {}, []); // initialize firebase
   return (
     <>
       <StatusBar style="dark" />
@@ -48,6 +51,13 @@ export default function App() {
             }}
           />
           <Stack.Screen name="Map" component={Map} options={{ title: "Map" }} />
+          <Stack.Screen
+            name="PlaceDetails"
+            component={PlaceDetails}
+            options={{
+              title: "Loading Place...",
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </>
