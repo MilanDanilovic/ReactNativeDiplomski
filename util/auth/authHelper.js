@@ -29,8 +29,8 @@ export async function loginUser(email, password) {
 }
 
 export async function logoutUser() {
-  await signOut(auth);
   await AsyncStorage.removeItem("user"); // Clear user from AsyncStorage
+  await signOut(auth);
 }
 
 export async function getStoredUser() {

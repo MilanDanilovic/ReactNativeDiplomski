@@ -1,19 +1,22 @@
-import { useCallback, useState } from "react";
+import { useState, useCallback } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-
-import { Colors } from "../../constants/colors";
-import { Place } from "../../models/place";
 import Button from "../UI/Button";
 import ImagePicker from "./ImagePicker";
 import LocationPicker from "./LocationPicker";
+import { Place } from "../../models/place";
 
 function PlaceForm({ onCreatePlace }) {
   const [enteredTitle, setEnteredTitle] = useState("");
+  const [enteredDescription, setEnteredDescription] = useState(""); // Description state
   const [selectedImage, setSelectedImage] = useState();
   const [pickedLocation, setPickedLocation] = useState();
 
   function changeTitleHandler(enteredText) {
     setEnteredTitle(enteredText);
+  }
+
+  function changeDescriptionHandler(enteredText) {
+    setEnteredDescription(enteredText); // Set description state
   }
 
   function takeImageHandler(imageUri) {
@@ -27,22 +30,31 @@ function PlaceForm({ onCreatePlace }) {
   function savePlaceHandler() {
     const placeData = new Place(
       enteredTitle,
-      "",
+      enteredDescription, // Include description
       selectedImage,
       pickedLocation,
       null
     );
-    onCreatePlace(placeData);
+    onCreatePlace(placeData); // Pass place data to the function
   }
 
   return (
-    <ScrollView style={styles.form}>
+    <ScrollView contentContainerStyle={styles.form}>
       <View>
         <Text style={styles.label}>Title</Text>
         <TextInput
           style={styles.input}
           onChangeText={changeTitleHandler}
           value={enteredTitle}
+        />
+      </View>
+      <View>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={changeDescriptionHandler}
+          value={enteredDescription}
+          multiline // Enable multiline for the description
         />
       </View>
       <ImagePicker onTakeImage={takeImageHandler} />
@@ -52,25 +64,23 @@ function PlaceForm({ onCreatePlace }) {
   );
 }
 
-export default PlaceForm;
-
 const styles = StyleSheet.create({
   form: {
-    flex: 1,
+    flexGrow: 1,
     padding: 24,
+    justifyContent: "center",
   },
   label: {
     fontWeight: "bold",
     marginBottom: 4,
-    color: Colors.primary500,
   },
   input: {
     marginVertical: 8,
     paddingHorizontal: 4,
     paddingVertical: 8,
-    fontSize: 16,
-    borderBottomColor: Colors.primary700,
-    borderBottomWidth: 2,
-    backgroundColor: Colors.primary100,
+    borderBottomColor: "#ccc",
+    borderBottomWidth: 1,
   },
 });
+
+export default PlaceForm;

@@ -42,7 +42,7 @@ function ImagePicker({ onTakeImage }) {
 
     const image = await launchCameraAsync({
       allowsEditing: true,
-      aspect: [16, 9],
+      // aspect: [16, 9],
       quality: 0.5,
     });
 
@@ -55,7 +55,6 @@ function ImagePicker({ onTakeImage }) {
   let imagePreview = <Text>No image taken yet.</Text>;
 
   if (pickedImage) {
-    console.log(pickedImage);
     imagePreview = <Image style={styles.image} source={{ uri: pickedImage }} />;
   }
 

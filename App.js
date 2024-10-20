@@ -4,6 +4,17 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { auth } from "./util/firebase/firebaseConfig"; // Firebase Auth config
 import { onAuthStateChanged } from "firebase/auth";
+import { logoutUser } from "./util/auth/authHelper";
+
+import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItemList,
+  DrawerItem,
+} from "@react-navigation/drawer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
 
 // Import screens
 import AllPlaces from "./screens/AllPlaces";
@@ -16,10 +27,24 @@ import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 
 const Stack = createNativeStackNavigator();
+const Drawer = createDrawerNavigator();
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [initializing, setInitializing] = useState(true);
+
+  const theme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: "#58D68D",
+      accent: "#105238",
+      background: "#f6f6f6",
+      surface: "#ffffff",
+      text: "#000000",
+      placeholder: "#C1F3D3",
+    },
+  };
 
   // Check if user is authenticated
   useEffect(() => {
@@ -33,60 +58,84 @@ export default function App() {
 
   if (initializing) return null; // Display nothing while Firebase is initializing
 
+  const logoutHandler = async () => {
+    try {
+      await logoutUser();
+
+      Alert.alert("Logout successful", "You have been logged out.");
+    } catch (error) {
+      Alert.alert("Logout failed", error.message);
+    }
+  };
+
+  // Custom Drawer Content with Logout
+  function CustomDrawerContent(props) {
+    return (
+      <DrawerContentScrollView {...props}>
+        <DrawerItemList {...props} />
+        <DrawerItem label="Logout" onPress={() => logoutHandler(props)} />
+      </DrawerContentScrollView>
+    );
+  }
+
+  // Stack Navigator for places
+  function PlacesStack() {
+    return (
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: Colors.primary500 },
+          headerTintColor: Colors.primary50,
+          contentStyle: { backgroundColor: Colors.primary50 },
+        }}
+      >
+        <Stack.Screen
+          name="AllPlaces"
+          component={AllPlaces}
+          options={({ navigation }) => ({
+            title: "All Places",
+            headerRight: ({ tintColor }) => (
+              <IconButton
+                icon="add"
+                size={24}
+                color={tintColor}
+                onPress={() => navigation.navigate("AddPlace")}
+              />
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="AddPlace"
+          component={AddPlace}
+          options={{ title: "Add a new Place" }}
+        />
+        <Stack.Screen name="Map" component={Map} options={{ title: "Map" }} />
+        <Stack.Screen
+          name="PlaceDetails"
+          component={PlaceDetails}
+          options={{ title: "Loading Place..." }}
+        />
+      </Stack.Navigator>
+    );
+  }
+
   return (
-    <>
+    <PaperProvider theme={theme}>
       <StatusBar style="dark" />
       <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: { backgroundColor: Colors.primary500 },
-            headerTintColor: Colors.primary50,
-            contentStyle: { backgroundColor: Colors.primary50 },
-          }}
-        >
-          {user ? (
-            <>
-              {/* Protected Routes for authenticated users */}
-              <Stack.Screen
-                name="AllPlaces"
-                component={AllPlaces}
-                options={({ navigation }) => ({
-                  title: "All Places",
-                  headerRight: ({ tintColor }) => (
-                    <IconButton
-                      icon="add"
-                      size={24}
-                      color={tintColor}
-                      onPress={() => navigation.navigate("AddPlace")}
-                    />
-                  ),
-                })}
-              />
-              <Stack.Screen
-                name="AddPlace"
-                component={AddPlace}
-                options={{ title: "Add a new Place" }}
-              />
-              <Stack.Screen
-                name="Map"
-                component={Map}
-                options={{ title: "Map" }}
-              />
-              <Stack.Screen
-                name="PlaceDetails"
-                component={PlaceDetails}
-                options={{ title: "Loading Place..." }}
-              />
-            </>
-          ) : (
-            <>
-              {/* Auth Screens for unauthenticated users */}
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="Register" component={RegisterScreen} />
-            </>
-          )}
-        </Stack.Navigator>
+        {user ? (
+          <Drawer.Navigator
+            drawerContent={(props) => <CustomDrawerContent {...props} />}
+          >
+            <Drawer.Screen name="Places" component={PlacesStack} />
+            {/* Add more drawer items/screens if needed */}
+          </Drawer.Navigator>
+        ) : (
+          <Stack.Navigator>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </Stack.Navigator>
+        )}
       </NavigationContainer>
-    </>
+    </PaperProvider>
   );
 }
