@@ -10,12 +10,13 @@ KomunalniProblemiApp is a React Native application designed to help users report
 - **GPS Tracking**: The app continuously tracks the user's location using GPS and displays their position on a map.
 - **Add Objects**: Users can add objects (communal problems) on the map with a text description.
 - **Select and Resolve Objects**: Users can select objects within their radius and mark them as resolved. The status of communal problems can be:
-  - Current
+  - Active
   - Resolved
   - Stale (older than 30 days)
 - **Problem Table**: Communal problems are also displayed in a table on a separate screen.
 - **Active Users List**: Users can view a list of currently active users within the app.
 - **Search Functionality**: Users can search for objects on the map based on description, type, status, or by user radius.
+- **Notification System**: When you come close to problem that is Active on the map
 
 ## How to Run the React Native App
 
