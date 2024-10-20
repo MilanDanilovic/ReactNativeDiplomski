@@ -8,28 +8,25 @@ function AllPlaces({ route }) {
   const [loadedPlaces, setLoadedPlaces] = useState([]);
   const isFocused = useIsFocused();
 
-  // Function to fetch places from Firebase Firestore
   async function fetchPlaces() {
-    const placesCollectionRef = collection(firestore, "communalProblems"); // Firestore collection reference
-    const querySnapshot = await getDocs(placesCollectionRef); // Get all documents in the collection
+    const placesCollectionRef = collection(firestore, "communalProblems");
+    const querySnapshot = await getDocs(placesCollectionRef);
     const placesData = [];
 
-    // Loop through each document in Firestore and add it to the array
     querySnapshot.forEach((doc) => {
       const placeData = {
-        id: doc.id, // Firestore document ID
-        ...doc.data(), // All the fields of the document (title, description, etc.)
+        id: doc.id,
+        ...doc.data(),
       };
       placesData.push(placeData);
     });
 
-    // Update the state with the fetched places
     setLoadedPlaces(placesData);
   }
 
   useEffect(() => {
     if (isFocused) {
-      fetchPlaces(); // Fetch places when the screen is focused
+      fetchPlaces();
     }
   }, [isFocused, route]);
 

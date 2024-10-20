@@ -56,7 +56,7 @@ export default function App() {
     return unsubscribe; // Clean up the listener on component unmount
   }, []);
 
-  if (initializing) return null; // Display nothing while Firebase is initializing
+  if (initializing) return null;
 
   const logoutHandler = async () => {
     try {
@@ -68,7 +68,6 @@ export default function App() {
     }
   };
 
-  // Custom Drawer Content with Logout
   function CustomDrawerContent(props) {
     return (
       <DrawerContentScrollView {...props}>
@@ -78,7 +77,6 @@ export default function App() {
     );
   }
 
-  // Stack Navigator for places
   function PlacesStack() {
     return (
       <Stack.Navigator
@@ -127,7 +125,6 @@ export default function App() {
             drawerContent={(props) => <CustomDrawerContent {...props} />}
           >
             <Drawer.Screen name="Places" component={PlacesStack} />
-            {/* Add more drawer items/screens if needed */}
           </Drawer.Navigator>
         ) : (
           <Stack.Navigator>
