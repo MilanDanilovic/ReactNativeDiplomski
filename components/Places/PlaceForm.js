@@ -4,7 +4,7 @@ import Button from "../UI/Button";
 import ImagePicker from "./ImagePicker";
 import LocationPicker from "./LocationPicker";
 import { Place } from "../../models/place";
-
+import { auth } from "../../util/firebase/firebaseConfig";
 function PlaceForm({ onCreatePlace }) {
   const [enteredTitle, setEnteredTitle] = useState("");
   const [enteredDescription, setEnteredDescription] = useState(""); // Description state
@@ -28,14 +28,18 @@ function PlaceForm({ onCreatePlace }) {
   }, []);
 
   function savePlaceHandler() {
+    const currentUser = auth.currentUser;
+
     const placeData = new Place(
       enteredTitle,
-      enteredDescription, // Include description
+      enteredDescription,
       selectedImage,
       pickedLocation,
-      null
+      null,
+      currentUser?.uid, // Add the current user's email or name
+      "Active" // Initial status of the problem
     );
-    onCreatePlace(placeData); // Pass place data to the function
+    onCreatePlace(placeData);
   }
 
   return (

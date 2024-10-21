@@ -6,12 +6,13 @@ function PlaceItem({ place, onSelect }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-      onPress={onSelect.bind(this, place.id, place)} //remove place when firebase is implemented
+      onPress={onSelect.bind(this, place.id, place)}
     >
       <Image style={styles.image} source={{ uri: place.imageUri }} />
       <View style={styles.info}>
         <Text style={styles.title}>{place.title}</Text>
         <Text style={styles.address}>{place.address}</Text>
+        <Text style={styles.status}>Status: {place.status}</Text>
       </View>
     </Pressable>
   );
@@ -31,6 +32,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowOffset: { width: 1, height: 1 },
     shadowRadius: 2,
+    alignContent: "center",
+    alignItems: "center",
   },
   pressed: {
     opacity: 0.9,
@@ -39,7 +42,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderBottomLeftRadius: 4,
     borderTopLeftRadius: 4,
-    height: 100,
+    height: "100%",
   },
   info: {
     flex: 2,
@@ -53,5 +56,9 @@ const styles = StyleSheet.create({
   address: {
     fontSize: 12,
     color: Colors.gray700,
+  },
+  status: {
+    fontSize: 12,
+    color: Colors.accent500,
   },
 });

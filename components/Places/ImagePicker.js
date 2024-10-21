@@ -5,20 +5,19 @@ import {
   PermissionStatus,
 } from "expo-image-picker";
 import { useState } from "react";
-
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../../util/firebase/firebaseConfig"; // Import Firebase storage
 import { Colors } from "../../constants/colors";
 import OutlinedButton from "../UI/OutlinedButton";
 
 function ImagePicker({ onTakeImage }) {
   const [pickedImage, setPickedImage] = useState();
-
   const [cameraPermissionInformation, requestPermission] =
     useCameraPermissions();
 
   async function verifyPermissions() {
     if (cameraPermissionInformation.status === PermissionStatus.UNDETERMINED) {
       const permissionResponse = await requestPermission();
-
       return permissionResponse.granted;
     }
 
@@ -31,6 +30,20 @@ function ImagePicker({ onTakeImage }) {
     }
 
     return true;
+  }
+
+  async function uploadImageToStorage(imageUri) {
+    // Convert the image to a blob and upload to Firebase storage
+    const imageRef = ref(storage, `images/${Date.now()}.jpg`); // Set a unique name for the image
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+
+    // Upload the blob to Firebase Storage
+    await uploadBytes(imageRef, blob);
+
+    // Get the download URL for the uploaded image
+    const downloadUrl = await getDownloadURL(imageRef);
+    return downloadUrl;
   }
 
   async function takeImageHandler() {
@@ -47,8 +60,18 @@ function ImagePicker({ onTakeImage }) {
     });
 
     if (!image.canceled) {
-      setPickedImage(image.assets[0].uri);
-      onTakeImage(image.assets[0].uri);
+      const imageUri = image.assets[0].uri;
+      setPickedImage(imageUri);
+
+      try {
+        // Upload the image to Firebase Storage and get the download URL
+        const downloadUrl = await uploadImageToStorage(imageUri);
+
+        // Pass the download URL via the onTakeImage callback
+        onTakeImage(downloadUrl);
+      } catch (error) {
+        Alert.alert("Upload failed", "Could not upload the image. Try again!");
+      }
     }
   }
 

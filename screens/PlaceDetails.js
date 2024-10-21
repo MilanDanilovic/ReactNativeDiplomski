@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
-import { ScrollView, Image, View, Text, StyleSheet } from "react-native";
-
+import { ScrollView, Image, View, Text, StyleSheet, Alert } from "react-native";
+import { Button } from "react-native-paper";
 import OutlinedButton from "../components/UI/OutlinedButton";
 import { Colors } from "../constants/colors";
+import { Place } from "../models/place";
+import { firestore } from "../util/firebase/firebaseConfig";
+import { doc, updateDoc } from "firebase/firestore";
+
 // import { fetchPlaceDetails } from "../util/database";
 
 function PlaceDetails({ route, navigation }) {
   const [fetchedPlace, setFetchedPlace] = useState();
+  const { place } = route.params;
+
+  const [problemStatus, setProblemStatus] = useState(place.status);
 
   function showOnMapHandler() {
     navigation.navigate("Map", {
@@ -33,6 +40,22 @@ function PlaceDetails({ route, navigation }) {
     loadPlaceData();
   }, [selectedPlaceId]);
 
+  async function markAsResolvedHandler() {
+    try {
+      const problemRef = doc(firestore, "communalProblems", place.id);
+      await updateDoc(problemRef, {
+        status: "Resolved", // Update the status to Resolved
+      });
+
+      setProblemStatus("Resolved");
+      navigation.goBack();
+      Alert.alert("Success", "Problem marked as resolved.");
+    } catch (error) {
+      console.log("Error marking problem as resolved: ", error);
+      Alert.alert("Error", "Could not update the problem.");
+    }
+  }
+
   if (!fetchedPlace) {
     return (
       <View style={styles.fallback}>
@@ -47,10 +70,16 @@ function PlaceDetails({ route, navigation }) {
       <View style={styles.locationContainer}>
         <View style={styles.addressContainer}>
           <Text style={styles.address}>{fetchedPlace.address}</Text>
+          <Text style={styles.description}>{fetchedPlace.description}</Text>
         </View>
         <OutlinedButton icon="map" onPress={showOnMapHandler}>
           View on Map
         </OutlinedButton>
+        {problemStatus !== "Resolved" && (
+          <Button mode="contained" onPress={markAsResolvedHandler}>
+            Mark as Resolved
+          </Button>
+        )}
       </View>
     </ScrollView>
   );
@@ -80,6 +109,11 @@ const styles = StyleSheet.create({
     color: Colors.primary500,
     textAlign: "center",
     fontWeight: "bold",
+    fontSize: 16,
+  },
+  description: {
+    textAlign: "center",
+    marginTop: 10,
     fontSize: 16,
   },
 });

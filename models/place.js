@@ -1,10 +1,12 @@
 export class Place {
-  constructor(title, description, imageUri, location, id) {
+  constructor(title, description, imageUri, location, id, postedBy, status) {
     this.title = title;
     this.description = description;
     this.imageUri = imageUri;
     this.address = location.address;
-    this.location = { lat: location.lat, lng: location.lng }; // { lat: 0.141241, lng: 127.121 }
-    this.id = new Date().toString() + Math.random().toString(); // pseudo unique id, should be replaced with a real one from firebase
+    this.location = { lat: location.lat, lng: location.lng };
+    this.id = new Date().toString() + Math.random().toString();
+    this.postedBy = postedBy; // Who posted the problem
+    this.status = status; // Problem status
   }
 }

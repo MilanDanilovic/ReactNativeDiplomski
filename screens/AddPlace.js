@@ -8,11 +8,13 @@ function AddPlace({ navigation }) {
       // Upload place (communal problem) to Firestore
       await addDoc(collection(firestore, "communalProblems"), {
         title: place.title,
-        description: place.description, // Include description
+        description: place.description,
         imageUri: place.imageUri,
         location: place.location, // lat and lng
         address: place.address,
-        createdAt: new Date(), // Add timestamp
+        postedBy: place.postedBy, // Save user ID in postedBy
+        status: place.status,
+        createdAt: new Date(),
       });
 
       navigation.navigate("AllPlaces");
