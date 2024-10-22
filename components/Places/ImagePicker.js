@@ -4,16 +4,20 @@ import {
   useCameraPermissions,
   PermissionStatus,
 } from "expo-image-picker";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../../util/firebase/firebaseConfig"; // Import Firebase storage
 import { Colors } from "../../constants/colors";
 import OutlinedButton from "../UI/OutlinedButton";
 
-function ImagePicker({ onTakeImage }) {
+function ImagePicker({ onTakeImage, initialImageUri }) {
   const [pickedImage, setPickedImage] = useState();
   const [cameraPermissionInformation, requestPermission] =
     useCameraPermissions();
+
+  useLayoutEffect(() => {
+    setPickedImage(initialImageUri);
+  }, [initialImageUri]);
 
   async function verifyPermissions() {
     if (cameraPermissionInformation.status === PermissionStatus.UNDETERMINED) {

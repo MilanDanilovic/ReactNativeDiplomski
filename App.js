@@ -135,11 +135,7 @@ export default function App() {
             drawerContent={(props) => <CustomDrawerContent {...props} />}
           >
             <Drawer.Screen name="Places" component={PlacesStack} />
-            <Drawer.Screen
-              name="UserDetails"
-              component={UserDetails}
-              initialParams={{ userId: user.uid }}
-            />
+
             <Drawer.Screen name="MyProblems" component={MyProblems} />
             <Drawer.Screen name="UsersList" component={UsersList} />
           </Drawer.Navigator>

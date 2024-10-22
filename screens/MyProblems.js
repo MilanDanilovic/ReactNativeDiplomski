@@ -6,7 +6,7 @@ import { useIsFocused } from "@react-navigation/native";
 
 function MyProblems({ navigation }) {
   const [myPlaces, setMyPlaces] = useState([]);
-
+  const isFocused = useIsFocused();
   useEffect(() => {
     const currentUser = auth.currentUser;
 
@@ -25,12 +25,12 @@ function MyProblems({ navigation }) {
     }
 
     fetchMyPlaces();
-  }, []);
+  }, [isFocused]);
 
   function onSelectPlace(place) {
     navigation.navigate("EditProblemScreen", {
-      problemId: place.id,
-      problem: place,
+      problemId: place,
+      returnScreen: "MyProblems", // Pass the screen to return to
     }); // Navigate to edit screen
   }
 
