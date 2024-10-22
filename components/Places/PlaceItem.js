@@ -1,19 +1,69 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-
+import { Pressable, StyleSheet, View, Image } from "react-native";
+import {
+  Card,
+  Title,
+  Paragraph,
+  Button,
+  Chip,
+  IconButton,
+} from "react-native-paper";
 import { Colors } from "../../constants/colors";
+import { useNavigation } from "@react-navigation/native";
 
 function PlaceItem({ place, onSelect }) {
+  const navigation = useNavigation();
+
+  function showOnMapHandler() {
+    navigation.navigate("Map", {
+      initialLat: place.location.lat,
+      initialLng: place.location.lng,
+    });
+  }
+
   return (
-    <Pressable
-      style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-      onPress={onSelect.bind(this, place.id, place)}
-    >
-      <Image style={styles.image} source={{ uri: place.imageUri }} />
-      <View style={styles.info}>
-        <Text style={styles.title}>{place.title}</Text>
-        <Text style={styles.address}>{place.address}</Text>
-        <Text style={styles.status}>Status: {place.status}</Text>
-      </View>
+    <Pressable onPress={onSelect.bind(this, place.id, place)}>
+      <Card style={styles.card}>
+        {/* Image of the place */}
+        <Card.Cover source={{ uri: place.imageUri }} style={styles.image} />
+
+        {/* Content: Title, Address, Status */}
+        <Card.Content style={styles.cardContent}>
+          <Title style={styles.title}>{place.title}</Title>
+          <Chip
+            icon="information"
+            mode="outlined"
+            style={[
+              styles.chip,
+              place.status === "Active"
+                ? styles.activeChip
+                : place.status === "Resolved"
+                ? styles.resolvedChip
+                : styles.staleChip,
+            ]}
+          >
+            {place.status}
+          </Chip>
+          <Paragraph style={styles.address}>{place.description}</Paragraph>
+          <Paragraph style={styles.address}>{place.address}</Paragraph>
+        </Card.Content>
+
+        {/* Actions: View Details & Map Icon */}
+        <Card.Actions style={styles.actions}>
+          <Button
+            mode="contained"
+            onPress={onSelect.bind(this, place.id, place)}
+            style={styles.detailsButton}
+          >
+            View Details
+          </Button>
+          <IconButton
+            icon="map-marker"
+            color={Colors.primary700}
+            size={28}
+            onPress={showOnMapHandler}
+          />
+        </Card.Actions>
+      </Card>
     </Pressable>
   );
 }
@@ -21,44 +71,62 @@ function PlaceItem({ place, onSelect }) {
 export default PlaceItem;
 
 const styles = StyleSheet.create({
-  item: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    borderRadius: 6,
+  card: {
     marginVertical: 12,
-    backgroundColor: Colors.primary500,
-    elevation: 2,
-    shadowColor: "black",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 1, height: 1 },
-    shadowRadius: 2,
-    alignContent: "center",
-    alignItems: "center",
+    borderRadius: 12,
+    elevation: 5,
+    backgroundColor: "#fff",
+    overflow: "hidden",
   },
-  pressed: {
-    opacity: 0.9,
+  cardContent: {
+    padding: 16, // Add padding for better spacing inside the card content
   },
   image: {
-    flex: 1,
-    borderBottomLeftRadius: 4,
-    borderTopLeftRadius: 4,
-    height: "100%",
-  },
-  info: {
-    flex: 2,
-    padding: 12,
+    height: 180,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   title: {
     fontWeight: "bold",
-    fontSize: 18,
-    color: Colors.gray700,
+    fontSize: 20,
+    color: Colors.primary700,
+    marginBottom: 8, // Adds some space between the title and the chip
+  },
+  chip: {
+    marginBottom: 12, // Adds spacing between chip and other elements
+    alignSelf: "flex-start", // Align the chip to the left
+    paddingVertical: 4,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+  },
+  activeChip: {
+    backgroundColor: "#DFF2BF",
+    borderColor: "#27AE60",
+    color: "#27AE60",
+  },
+  resolvedChip: {
+    backgroundColor: "#C9DAF8",
+    borderColor: "#2980B9",
+    color: "#2980B9",
+  },
+  staleChip: {
+    backgroundColor: "#FBE3E4",
+    borderColor: "#C0392B",
+    color: "#C0392B",
   },
   address: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.gray700,
+    marginVertical: 8,
   },
-  status: {
-    fontSize: 12,
-    color: Colors.accent500,
+  actions: {
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  detailsButton: {
+    backgroundColor: Colors.primary500,
+    borderRadius: 25,
+    paddingHorizontal: 12,
   },
 });

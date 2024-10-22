@@ -1,10 +1,12 @@
 import { useState, useCallback } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import Button from "../UI/Button";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { TextInput, Card, Button, Title, Text } from "react-native-paper";
 import ImagePicker from "./ImagePicker";
 import LocationPicker from "./LocationPicker";
 import { Place } from "../../models/place";
+import { Colors } from "../../constants/colors";
 import { auth } from "../../util/firebase/firebaseConfig";
+
 function PlaceForm({ onCreatePlace }) {
   const [enteredTitle, setEnteredTitle] = useState("");
   const [enteredDescription, setEnteredDescription] = useState(""); // Description state
@@ -44,47 +46,77 @@ function PlaceForm({ onCreatePlace }) {
 
   return (
     <ScrollView contentContainerStyle={styles.form}>
-      <View>
-        <Text style={styles.label}>Title</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={changeTitleHandler}
-          value={enteredTitle}
-        />
-      </View>
-      <View>
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={changeDescriptionHandler}
-          value={enteredDescription}
-          multiline // Enable multiline for the description
-        />
-      </View>
-      <ImagePicker onTakeImage={takeImageHandler} />
-      <LocationPicker onPickLocation={pickLocationHandler} />
-      <Button onPress={savePlaceHandler}>Add Place</Button>
+      <Card style={styles.card}>
+        <Card.Content>
+          <Title style={styles.title}>Add a New Place</Title>
+          <TextInput
+            label="Title"
+            value={enteredTitle}
+            onChangeText={changeTitleHandler}
+            style={styles.input}
+            mode="outlined"
+          />
+          <TextInput
+            label="Description"
+            value={enteredDescription}
+            onChangeText={changeDescriptionHandler}
+            multiline
+            numberOfLines={3}
+            style={styles.input}
+            mode="outlined"
+          />
+          <ImagePicker onTakeImage={takeImageHandler} />
+          <LocationPicker onPickLocation={pickLocationHandler} />
+          <Button
+            mode="contained"
+            onPress={savePlaceHandler}
+            style={styles.button}
+            contentStyle={styles.buttonContent}
+            labelStyle={styles.buttonLabel}
+          >
+            Add Place
+          </Button>
+        </Card.Content>
+      </Card>
     </ScrollView>
   );
 }
+
+export default PlaceForm;
 
 const styles = StyleSheet.create({
   form: {
     flexGrow: 1,
     padding: 24,
-    justifyContent: "center",
+    backgroundColor: "#f4f4f9", // Light background to contrast with the card
   },
-  label: {
+  card: {
+    padding: 16,
+    borderRadius: 12,
+    elevation: 4,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginBottom: 16,
+    color: Colors.primary700,
+    textAlign: "center",
   },
   input: {
-    marginVertical: 8,
-    paddingHorizontal: 4,
+    marginBottom: 16,
+    backgroundColor: "#f9f9f9", // Slight contrast for input fields
+  },
+  button: {
+    marginTop: 16,
+    borderRadius: 25,
+    backgroundColor: Colors.primary500,
+  },
+  buttonContent: {
     paddingVertical: 8,
-    borderBottomColor: "#ccc",
-    borderBottomWidth: 1,
+  },
+  buttonLabel: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
-
-export default PlaceForm;

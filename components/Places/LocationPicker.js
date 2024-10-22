@@ -129,9 +129,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   actions: {
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-around",
-    alignItems: "center",
+    alignItems: "stretch",
   },
   image: {
     width: "100%",

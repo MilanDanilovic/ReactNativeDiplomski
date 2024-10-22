@@ -1,18 +1,14 @@
 import { useEffect, useState } from "react";
-import { ScrollView, Image, View, Text, StyleSheet, Alert } from "react-native";
-import { Button } from "react-native-paper";
+import { ScrollView, StyleSheet, Alert, View } from "react-native";
+import { Card, Title, Paragraph, Button, Text } from "react-native-paper";
 import OutlinedButton from "../components/UI/OutlinedButton";
 import { Colors } from "../constants/colors";
-import { Place } from "../models/place";
 import { firestore } from "../util/firebase/firebaseConfig";
 import { doc, updateDoc } from "firebase/firestore";
-
-// import { fetchPlaceDetails } from "../util/database";
 
 function PlaceDetails({ route, navigation }) {
   const [fetchedPlace, setFetchedPlace] = useState();
   const { place } = route.params;
-
   const [problemStatus, setProblemStatus] = useState(place.status);
 
   function showOnMapHandler() {
@@ -22,29 +18,22 @@ function PlaceDetails({ route, navigation }) {
     });
   }
 
-  const selectedPlaceId = route.params.placeId;
-  //delete this place when firebase is implemented
-  const selectedPlace = route.params.place;
-
   useEffect(() => {
     async function loadPlaceData() {
-      //   const place = await fetchPlaceDetails(selectedPlaceId); // fetch place from firebase
-      //   setFetchedPlace(place);
-      setFetchedPlace(selectedPlace);
-
+      setFetchedPlace(place);
       navigation.setOptions({
         title: place.title,
       });
     }
 
     loadPlaceData();
-  }, [selectedPlaceId]);
+  }, [place]);
 
   async function markAsResolvedHandler() {
     try {
       const problemRef = doc(firestore, "communalProblems", place.id);
       await updateDoc(problemRef, {
-        status: "Resolved", // Update the status to Resolved
+        status: "Resolved",
       });
 
       setProblemStatus("Resolved");
@@ -65,22 +54,39 @@ function PlaceDetails({ route, navigation }) {
   }
 
   return (
-    <ScrollView>
-      <Image style={styles.image} source={{ uri: fetchedPlace.imageUri }} />
-      <View style={styles.locationContainer}>
-        <View style={styles.addressContainer}>
-          <Text style={styles.address}>{fetchedPlace.address}</Text>
-          <Text style={styles.description}>{fetchedPlace.description}</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Card style={styles.card}>
+        <Card.Cover
+          source={{ uri: fetchedPlace.imageUri }}
+          style={styles.image}
+        />
+        <Card.Content>
+          <Title style={styles.title}>{fetchedPlace.title}</Title>
+          <Paragraph style={styles.address}>{fetchedPlace.address}</Paragraph>
+          <Paragraph style={styles.description}>
+            {fetchedPlace.description}
+          </Paragraph>
+        </Card.Content>
+
+        <View style={styles.buttonContainer}>
+          <OutlinedButton
+            icon="map"
+            onPress={showOnMapHandler}
+            style={styles.mapButton}
+          >
+            View on Map
+          </OutlinedButton>
+          {problemStatus !== "Resolved" && (
+            <Button
+              mode="contained"
+              onPress={markAsResolvedHandler}
+              style={styles.resolveButton}
+            >
+              Resolve it
+            </Button>
+          )}
         </View>
-        <OutlinedButton icon="map" onPress={showOnMapHandler}>
-          View on Map
-        </OutlinedButton>
-        {problemStatus !== "Resolved" && (
-          <Button mode="contained" onPress={markAsResolvedHandler}>
-            Mark as Resolved
-          </Button>
-        )}
-      </View>
+      </Card>
     </ScrollView>
   );
 }
@@ -88,32 +94,55 @@ function PlaceDetails({ route, navigation }) {
 export default PlaceDetails;
 
 const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    backgroundColor: "#f6f6f6",
+  },
+  card: {
+    borderRadius: 12,
+    elevation: 4,
+    marginBottom: 16,
+    backgroundColor: "#fff",
+  },
+  image: {
+    height: 300,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: Colors.primary700,
+    marginBottom: 8,
+  },
+  address: {
+    fontSize: 16,
+    color: Colors.gray700,
+    marginBottom: 12,
+  },
+  description: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  mapButton: {
+    flex: 1,
+    marginRight: 10, // Adds space between the two buttons
+  },
+  resolveButton: {
+    flex: 1,
+    backgroundColor: Colors.primary500,
+  },
   fallback: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  image: {
-    height: "35%",
-    minHeight: 300,
-    width: "100%",
-  },
-  locationContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  addressContainer: {
-    padding: 20,
-  },
-  address: {
-    color: Colors.primary500,
-    textAlign: "center",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  description: {
-    textAlign: "center",
-    marginTop: 10,
-    fontSize: 16,
   },
 });

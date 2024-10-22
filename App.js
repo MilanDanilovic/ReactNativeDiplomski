@@ -122,6 +122,12 @@ export default function App() {
           component={PlaceDetails}
           options={{ title: "Loading Place..." }}
         />
+
+        <Stack.Screen
+          name="UserDetails"
+          component={UserDetails}
+          options={{ title: "User Details" }}
+        />
       </Stack.Navigator>
     );
   }
