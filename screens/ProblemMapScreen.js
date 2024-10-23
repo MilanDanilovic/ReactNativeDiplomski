@@ -1,27 +1,43 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, Alert, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 import MapView, { Marker, Callout, Circle } from "react-native-maps";
 import {
   getCurrentPositionAsync,
   watchPositionAsync,
   Accuracy,
 } from "expo-location";
-import { doc, getDocs, collection, updateDoc } from "firebase/firestore";
+import { getDocs, collection } from "firebase/firestore";
 import { firestore } from "../util/firebase/firebaseConfig";
 import { Button, TextInput, Chip, Searchbar } from "react-native-paper";
-import { getDistance } from "geolib"; // To calculate distance between two points
+import { getDistance } from "geolib";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
 
 function ProblemMapScreen() {
   const [userLocation, setUserLocation] = useState(null);
   const [problems, setProblems] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [filteredProblems, setFilteredProblems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [range, setRange] = useState(100); // Default range: 100m
+  const [range, setRange] = useState(100);
+  const [notifiedProblems, setNotifiedProblems] = useState([]);
 
   const isFocused = useIsFocused();
   const navigation = useNavigation();
+
+  const fetchProblems = async () => {
+    const problemsCollection = collection(firestore, "communalProblems");
+    const problemSnapshot = await getDocs(problemsCollection);
+    const problemData = [];
+
+    problemSnapshot.forEach((doc) => {
+      const problem = { id: doc.id, ...doc.data() };
+      problemData.push(problem);
+    });
+
+    setProblems(problemData);
+    setFilteredProblems(problemData);
+  };
 
   useEffect(() => {
     if (isFocused) {
@@ -43,22 +59,11 @@ function ProblemMapScreen() {
         );
       };
 
-      const fetchProblems = async () => {
-        const problemsCollection = collection(firestore, "communalProblems");
-        const problemSnapshot = await getDocs(problemsCollection);
-        const problemData = [];
-
-        problemSnapshot.forEach((doc) => {
-          const problem = { id: doc.id, ...doc.data() };
-          problemData.push(problem);
-        });
-
-        setProblems(problemData);
-        setFilteredProblems(problemData);
-      };
-
       startTracking();
       fetchProblems();
+
+      const intervalId = setInterval(fetchProblems, 10000);
+      return () => clearInterval(intervalId);
     }
   }, [isFocused]);
 
@@ -82,18 +87,39 @@ function ProblemMapScreen() {
     searchProblems();
   }, [searchQuery, selectedStatus, problems]);
 
-  // // Resolve problem and refresh list
-  // const resolveProblem = async (problemId) => {
-  //   const problemRef = doc(firestore, "communalProblems", problemId);
-  //   await updateDoc(problemRef, { status: "Resolved" });
-  //   Alert.alert("Success", "Problem marked as resolved.");
+  useEffect(() => {
+    if (userLocation) {
+      filteredProblems.forEach((problem) => {
+        const distance = getDistance(
+          {
+            latitude: userLocation.latitude,
+            longitude: userLocation.longitude,
+          },
+          {
+            latitude: problem.location.lat,
+            longitude: problem.location.lng,
+          }
+        );
 
-  //   const updatedProblems = problems.map((p) =>
-  //     p.id === problemId ? { ...p, status: "Resolved" } : p
-  //   );
-  //   setProblems(updatedProblems);
-  //   searchProblems(); // Re-filter problems
-  // };
+        const isInRange = distance <= range;
+
+        if (isInRange && !notifiedProblems.includes(problem.id)) {
+          sendNotification(problem);
+          setNotifiedProblems((prev) => [...prev, problem.id]);
+        }
+      });
+    }
+  }, [userLocation, filteredProblems]);
+
+  const sendNotification = async (problem) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "New Problem in Your Area!",
+        body: `${problem.title} is within ${range} meters of your location.`,
+      },
+      trigger: null,
+    });
+  };
 
   const addProblemHandler = (coords) => {
     navigation.navigate("AddPlace", {
@@ -153,7 +179,6 @@ function ProblemMapScreen() {
         }}
         onLongPress={(event) => addProblemHandler(event.nativeEvent.coordinate)}
       >
-        {/* Markers for Problems */}
         {filteredProblems.map((problem) => {
           const distance = getDistance(
             {
@@ -166,25 +191,23 @@ function ProblemMapScreen() {
             }
           );
 
-          // Color the marker based on whether it's within range or not
-          const pinColor = distance <= 100 ? "green" : "red";
-          const isInRange = distance <= 100;
+          const pinColor = distance <= range ? "green" : "red";
 
           return (
             <Marker
-              key={problem.id}
+              key={`${problem.id}-${pinColor}`} // Add unique key to ensure re-render
               coordinate={{
                 latitude: problem.location.lat,
                 longitude: problem.location.lng,
               }}
-              pinColor={pinColor} // Change color based on range
+              pinColor={pinColor}
             >
               <Callout
                 onPress={() =>
                   navigation.navigate("PlaceDetails", {
                     placeId: problem.id,
                     place: problem,
-                    isInRange: isInRange,
+                    isInRange: distance <= range,
                     returnScreen: "Map Screen",
                   })
                 }
@@ -199,11 +222,10 @@ function ProblemMapScreen() {
           );
         })}
 
-        {/* User radius (100m circle) */}
         {userLocation && (
           <Circle
             center={userLocation}
-            radius={100}
+            radius={range}
             strokeColor="rgba(0, 150, 255, 0.5)"
             fillColor="rgba(0, 150, 255, 0.2)"
           />
