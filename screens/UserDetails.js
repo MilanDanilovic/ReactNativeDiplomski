@@ -50,7 +50,11 @@ function UserDetails({ route, navigation }) {
       <Card
         style={styles.card}
         onPress={() =>
-          navigation.navigate("PlaceDetails", { placeId: item.id, place: item })
+          navigation.navigate("PlaceDetails", {
+            placeId: item.id,
+            place: item,
+            returnScreen: "UserDetails",
+          })
         }
       >
         <List.Item

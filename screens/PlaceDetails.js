@@ -1,16 +1,23 @@
-import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Alert, View } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Alert,
+  View,
+  BackHandler,
+  ActivityIndicator,
+} from "react-native";
 import { Card, Title, Paragraph, Button, Text } from "react-native-paper";
 import OutlinedButton from "../components/UI/OutlinedButton";
 import { Colors } from "../constants/colors";
 import { firestore } from "../util/firebase/firebaseConfig";
 import { doc, updateDoc } from "firebase/firestore";
+import { useFocusEffect } from "@react-navigation/native";
 
 function PlaceDetails({ route, navigation }) {
   const [fetchedPlace, setFetchedPlace] = useState();
-  const { place } = route.params;
+  const { place, returnScreen, isInRange } = route.params;
   const [problemStatus, setProblemStatus] = useState(place.status);
-
   function showOnMapHandler() {
     navigation.navigate("Map", {
       initialLat: fetchedPlace.location.lat,
@@ -28,6 +35,28 @@ function PlaceDetails({ route, navigation }) {
 
     loadPlaceData();
   }, [place]);
+
+  const handleGoBack = () => {
+    if (returnScreen) {
+      navigation.navigate(returnScreen);
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        handleGoBack();
+        return true;
+      };
+
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [handleGoBack])
+  );
 
   async function markAsResolvedHandler() {
     try {
@@ -76,7 +105,7 @@ function PlaceDetails({ route, navigation }) {
           >
             View on Map
           </OutlinedButton>
-          {problemStatus !== "Resolved" && (
+          {problemStatus !== "Resolved" && isInRange && (
             <Button
               mode="contained"
               onPress={markAsResolvedHandler}
@@ -144,5 +173,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
 });

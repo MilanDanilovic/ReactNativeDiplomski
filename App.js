@@ -29,6 +29,7 @@ import UserDetails from "./screens/UserDetails";
 import MyProblems from "./screens/MyProblems";
 import UsersList from "./screens/UsersList";
 import EditProblemScreen from "./screens/EditProblemScreen";
+import ProblemMapScreen from "./screens/ProblemMapScreen";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -140,8 +141,8 @@ export default function App() {
           <Drawer.Navigator
             drawerContent={(props) => <CustomDrawerContent {...props} />}
           >
-            <Drawer.Screen name="Places" component={PlacesStack} />
-
+            <Drawer.Screen name="Places Table" component={PlacesStack} />
+            <Drawer.Screen name="Map Screen" component={ProblemMapScreen} />
             <Drawer.Screen name="MyProblems" component={MyProblems} />
             <Drawer.Screen name="UsersList" component={UsersList} />
           </Drawer.Navigator>

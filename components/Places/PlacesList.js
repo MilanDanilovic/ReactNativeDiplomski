@@ -4,7 +4,7 @@ import { FlatList, StyleSheet, Text, View } from "react-native";
 import { Colors } from "../../constants/colors";
 import PlaceItem from "./PlaceItem";
 
-function PlacesList({ places, onSelectPlace }) {
+function PlacesList({ places, onSelectPlace, retunScreen }) {
   const navigation = useNavigation();
 
   function selectPlaceHandler(id, place) {
