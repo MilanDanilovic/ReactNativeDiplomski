@@ -32,6 +32,7 @@ function PlaceDetails({ route, navigation }) {
         title: place.title,
       });
     }
+    setProblemStatus(place.status);
 
     loadPlaceData();
   }, [place]);
@@ -105,7 +106,7 @@ function PlaceDetails({ route, navigation }) {
           >
             View on Map
           </OutlinedButton>
-          {problemStatus !== "Resolved" && isInRange && (
+          {problemStatus === "Active" && isInRange && (
             <Button
               mode="contained"
               onPress={markAsResolvedHandler}

@@ -12,6 +12,8 @@ import { Button, TextInput, Chip, Searchbar } from "react-native-paper";
 import { getDistance } from "geolib";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import * as Device from "expo-device";
 
 function ProblemMapScreen() {
   const [userLocation, setUserLocation] = useState(null);
@@ -25,6 +27,56 @@ function ProblemMapScreen() {
   const isFocused = useIsFocused();
   const navigation = useNavigation();
 
+  // Set notification handler to ensure notifications are displayed
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+
+  // Register for push notifications
+  useEffect(() => {
+    const registerForPushNotificationsAsync = async () => {
+      let token;
+      if (Device.isDevice) {
+        const { status: existingStatus } =
+          await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== "granted") {
+          alert("Failed to get push token for push notification!");
+          return;
+        }
+        try {
+          const projectId =
+            Constants?.expoConfig?.extra?.eas?.projectId ??
+            Constants?.easConfig?.projectId;
+          if (!projectId) {
+            throw new Error("Project ID not found");
+          }
+          token = (
+            await Notifications.getExpoPushTokenAsync({
+              projectId,
+            })
+          ).data;
+          console.log("Notification Token:", token);
+        } catch (e) {
+          console.log("Error getting token:", e);
+        }
+      } else {
+        alert("Must use physical device for Push Notifications");
+      }
+    };
+
+    registerForPushNotificationsAsync();
+  }, []);
+
+  // Fetch problems from Firestore
   const fetchProblems = async () => {
     const problemsCollection = collection(firestore, "communalProblems");
     const problemSnapshot = await getDocs(problemsCollection);
@@ -39,6 +91,7 @@ function ProblemMapScreen() {
     setFilteredProblems(problemData);
   };
 
+  // Start tracking user location and fetch problems on component focus
   useEffect(() => {
     if (isFocused) {
       const startTracking = async () => {
@@ -62,11 +115,12 @@ function ProblemMapScreen() {
       startTracking();
       fetchProblems();
 
-      const intervalId = setInterval(fetchProblems, 10000);
+      const intervalId = setInterval(fetchProblems, 10000); // Fetch problems every 10 seconds
       return () => clearInterval(intervalId);
     }
   }, [isFocused]);
 
+  // Search and filter problems
   const searchProblems = useCallback(() => {
     if (!userLocation) return;
     let filtered = problems.filter((problem) => {
@@ -87,6 +141,7 @@ function ProblemMapScreen() {
     searchProblems();
   }, [searchQuery, selectedStatus, problems]);
 
+  // Check if new problems are in range and send notification
   useEffect(() => {
     if (userLocation) {
       filteredProblems.forEach((problem) => {
@@ -105,17 +160,19 @@ function ProblemMapScreen() {
 
         if (isInRange && !notifiedProblems.includes(problem.id)) {
           sendNotification(problem);
-          setNotifiedProblems((prev) => [...prev, problem.id]);
+          setNotifiedProblems((prev) => [...prev, problem.id]); // Track notified problems
         }
       });
     }
   }, [userLocation, filteredProblems]);
 
+  // Send notification when problem is in range
   const sendNotification = async (problem) => {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "New Problem in Your Area!",
         body: `${problem.title} is within ${range} meters of your location.`,
+        sound: true,
       },
       trigger: null,
     });
