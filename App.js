@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { auth } from "./util/firebase/firebaseConfig"; // Firebase Auth config
 import { onAuthStateChanged } from "firebase/auth";
 import { logoutUser } from "./util/auth/authHelper";
-
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import {
   createDrawerNavigator,
@@ -14,7 +13,8 @@ import {
   DrawerItem,
 } from "@react-navigation/drawer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons"; // For Drawer icons
 
 // Import screens
 import AllPlaces from "./screens/AllPlaces";
@@ -66,7 +66,6 @@ export default function App() {
   const logoutHandler = async () => {
     try {
       await logoutUser();
-
       Alert.alert("Logout successful", "You have been logged out.");
     } catch (error) {
       Alert.alert("Logout failed", error.message);
@@ -75,10 +74,20 @@ export default function App() {
 
   function CustomDrawerContent(props) {
     return (
-      <DrawerContentScrollView {...props}>
-        <DrawerItemList {...props} />
-        <DrawerItem label="Logout" onPress={() => logoutHandler(props)} />
-      </DrawerContentScrollView>
+      <View style={{ flex: 1, justifyContent: "space-between" }}>
+        <DrawerContentScrollView {...props}>
+          <DrawerItemList {...props} />
+        </DrawerContentScrollView>
+        <View style={{ borderWidth: 0.5 }}>
+          <DrawerItem
+            label="Logout"
+            onPress={() => logoutHandler(props)}
+            icon={() => (
+              <Ionicons name="log-out-outline" size={22} color="red" />
+            )}
+          />
+        </View>
+      </View>
     );
   }
 
@@ -117,13 +126,11 @@ export default function App() {
           component={EditProblemScreen}
           options={{ title: "Edit Problem" }}
         />
-
         <Stack.Screen
           name="PlaceDetails"
           component={PlaceDetails}
           options={{ title: "Loading Place..." }}
         />
-
         <Stack.Screen
           name="UserDetails"
           component={UserDetails}
@@ -141,10 +148,46 @@ export default function App() {
           <Drawer.Navigator
             drawerContent={(props) => <CustomDrawerContent {...props} />}
           >
-            <Drawer.Screen name="Places Table" component={PlacesStack} />
-            <Drawer.Screen name="Map Screen" component={ProblemMapScreen} />
-            <Drawer.Screen name="MyProblems" component={MyProblems} />
-            <Drawer.Screen name="UsersList" component={UsersList} />
+            <Drawer.Screen
+              name="Places Table"
+              component={PlacesStack}
+              options={{
+                drawerIcon: ({ color, size }) => (
+                  <Ionicons name="location-outline" size={size} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="Map Screen"
+              component={ProblemMapScreen}
+              options={{
+                drawerIcon: ({ color, size }) => (
+                  <Ionicons name="map-outline" size={size} color={color} />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="MyProblems"
+              component={MyProblems}
+              options={{
+                drawerIcon: ({ color, size }) => (
+                  <Ionicons
+                    name="document-text-outline"
+                    size={size}
+                    color={color}
+                  />
+                ),
+              }}
+            />
+            <Drawer.Screen
+              name="UsersList"
+              component={UsersList}
+              options={{
+                drawerIcon: ({ color, size }) => (
+                  <Ionicons name="people-outline" size={size} color={color} />
+                ),
+              }}
+            />
           </Drawer.Navigator>
         ) : (
           <Stack.Navigator>
